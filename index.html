@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask Project Manager - Installer</title>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <title>Flask Manager - Professional Flask Development Tool</title>
     <style>
         * {
             margin: 0;
@@ -14,449 +12,265 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.5;
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            max-width: 600px;
-            width: 100%;
-            animation: fadeIn 0.5s ease-out;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .header ion-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-        }
-
-        .header h1 {
+        h1 {
             font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: 600;
+            font-weight: 500;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .status-card {
-            background: #f7f9fc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-left: 4px solid #667eea;
-        }
-
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .status-icon {
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .status-icon ion-icon {
+        h2 {
             font-size: 20px;
+            font-weight: 500;
+            margin: 32px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e5e5;
         }
 
-        .status-icon.installed ion-icon {
-            color: #10b981;
-        }
-
-        .status-icon.not-installed ion-icon {
-            color: #ef4444;
-        }
-
-        .status-icon.checking ion-icon {
-            color: #667eea;
-        }
-
-        .status-text {
+        h3 {
             font-size: 16px;
             font-weight: 500;
+            margin: 24px 0 8px 0;
         }
 
-        .status-text.installed {
-            color: #10b981;
-        }
-
-        .status-text.not-installed {
-            color: #ef4444;
-        }
-
-        .status-text.checking {
-            color: #667eea;
-        }
-
-        .location {
-            font-size: 12px;
-            color: #6b7280;
-            font-family: 'Courier New', monospace;
-            word-break: break-all;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .install-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px;
+        .subtitle {
+            color: #666666;
+            margin-bottom: 32px;
             font-size: 18px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 15px;
-            text-decoration: none;
-            display: inline-block;
+            font-weight: 400;
+        }
+
+        .detection-box {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            padding: 24px;
+            margin: 32px 0;
             text-align: center;
         }
 
-        .install-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
-        }
-
-        .install-btn:active {
-            transform: translateY(0);
-        }
-
-        .uninstall-btn {
-            width: 100%;
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 12px;
+        .detection-status {
             font-size: 14px;
+            color: #666666;
+            margin-bottom: 16px;
+        }
+
+        .windows-status {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 13px;
             font-weight: 500;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
-        .uninstall-btn:hover {
-            background: #dc2626;
+        .windows-status.supported {
+            background: #1a1a1a;
+            color: #ffffff;
         }
 
-        .launch-btn {
-            width: 100%;
-            background: #10b981;
-            color: white;
+        .windows-status.not-supported {
+            background: #e0e0e0;
+            color: #666666;
+        }
+
+        .download-button {
+            display: inline-block;
+            background: #1a1a1a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 32px;
+            font-size: 16px;
+            font-weight: 500;
             border: none;
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 12px;
             cursor: pointer;
-            transition: background 0.2s;
-            margin-bottom: 15px;
+            transition: background 0.2s ease;
         }
 
-        .launch-btn:hover {
-            background: #059669;
+        .download-button:hover {
+            background: #333333;
         }
 
-        .button-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
+        .download-button.disabled {
+            background: #cccccc;
+            cursor: not-allowed;
         }
 
-        .button-group .install-btn {
-            margin-bottom: 0;
-            flex: 2;
+        .instruction-step {
+            margin: 16px 0;
+            padding-left: 24px;
+            border-left: 2px solid #1a1a1a;
         }
 
-        .button-group .uninstall-btn {
-            margin-bottom: 0;
-            flex: 1;
+        .instruction-step strong {
+            font-weight: 600;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            padding: 12px 16px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 14px;
+            margin: 12px 0;
+            overflow-x: auto;
+            border: 1px solid #e5e5e5;
+        }
+
+        .note {
+            background: #f9f9f9;
+            border-left: 3px solid #1a1a1a;
+            padding: 16px;
+            margin: 24px 0;
+            font-size: 14px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #e5e5e5;
+            margin: 48px 0;
         }
 
         .footer {
-            background: #f7f9fc;
-            padding: 20px;
+            margin-top: 64px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e5e5;
+            font-size: 13px;
+            color: #999999;
             text-align: center;
-            font-size: 12px;
-            color: #6b7280;
         }
 
-        .footer ion-icon {
-            font-size: 12px;
-            margin: 0 2px;
-            vertical-align: middle;
-        }
-
-        .message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            border-radius: 8px;
-            padding: 12px 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
+        @media (max-width: 600px) {
+            .container {
+                padding: 32px 20px;
             }
-            to {
-                transform: translateX(0);
-                opacity: 1;
+            h1 {
+                font-size: 28px;
             }
-        }
-
-        .message.success {
-            border-left: 4px solid #10b981;
-        }
-
-        .message.error {
-            border-left: 4px solid #ef4444;
-        }
-
-        .message.info {
-            border-left: 4px solid #667eea;
-        }
-
-        .message ion-icon {
-            font-size: 18px;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.6s linear infinite;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .btn-with-loading {
-            position: relative;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <ion-icon name="cube-outline"></ion-icon>
-            <h1>Flask Project Manager</h1>
-            <p>Professional Flask development environment</p>
+        <h1>Flask Manager</h1>
+        <div class="subtitle">Automated Flask project management for Windows</div>
+
+        <p>Flask Manager is a command-line tool that automates the creation, management, and execution of Flask web applications on Windows. It handles virtual environments, dependency installation, and project scaffolding.</p>
+
+        <div class="detection-box">
+            <div class="detection-status">Operating system detection</div>
+            <div id="osStatus" class="windows-status"></div>
+            <div id="downloadContainer"></div>
         </div>
 
-        <div class="content">
-            <div class="status-card">
-                <div class="status">
-                    <div class="status-icon checking" id="statusIcon">
-                        <ion-icon name="refresh-outline"></ion-icon>
-                    </div>
-                    <span class="status-text checking" id="statusText">Checking installation...</span>
-                </div>
-                <div class="location" id="location"></div>
-            </div>
+        <h2>Installation instructions</h2>
 
-            <div id="mainButtons">
-                <button class="install-btn" onclick="installApp()">
-                    <ion-icon name="download-outline" style="font-size: 18px; margin-right: 8px; vertical-align: middle;"></ion-icon>
-                    Install Flask Manager
-                </button>
-            </div>
-
-            <div id="buttonGroup" style="display: none;">
-                <div class="button-group">
-                    <button class="install-btn" onclick="reinstallApp()">
-                        <ion-icon name="sync-outline" style="font-size: 16px; margin-right: 6px; vertical-align: middle;"></ion-icon>
-                        Reinstall
-                    </button>
-                    <button class="uninstall-btn" onclick="uninstallApp()">
-                        <ion-icon name="trash-outline" style="font-size: 14px; margin-right: 6px; vertical-align: middle;"></ion-icon>
-                        Uninstall
-                    </button>
-                </div>
-                <button class="launch-btn" onclick="launchApp()">
-                    <ion-icon name="play-outline" style="font-size: 14px; margin-right: 6px; vertical-align: middle;"></ion-icon>
-                    Launch Flask Manager
-                </button>
-            </div>
+        <div class="instruction-step">
+            <strong>Step 1</strong><br>
+            Click the download button above to save <code>installer.cmd</code> to your computer.
         </div>
+
+        <div class="instruction-step">
+            <strong>Step 2</strong><br>
+            Locate the downloaded file (usually in your Downloads folder).<br>
+            <strong>Right-click</strong> on <code>installer.cmd</code> and select <strong>"Run as administrator"</strong>.
+        </div>
+
+        <div class="instruction-step">
+            <strong>Step 3</strong><br>
+            Follow the on-screen prompts. The installer will:<br>
+            - Download the Flask Manager executable<br>
+            - Install it to <code>C:\Program Files\FlaskProjectManager</code><br>
+            - Add the program to your system PATH<br>
+            - Verify Python and VS Code installations (install if missing)
+        </div>
+
+        <div class="note">
+            <strong>Administrator privileges required</strong><br>
+            The installer must run with administrator privileges to write to Program Files and modify the system PATH. Right-click the file and select "Run as administrator".
+        </div>
+
+        <h2>How to run Flask Manager after installation</h2>
+
+        <div class="instruction-step">
+            <strong>Option 1: Command Prompt (recommended)</strong><br>
+            Open any Command Prompt window and type:
+            <div class="code-block">flask_manager</div>
+            Press Enter. The manager dashboard will appear.
+        </div>
+
+        <div class="instruction-step">
+            <strong>Option 2: Run dialog</strong><br>
+            Press <code>Windows + R</code>, type <code>flask_manager</code>, and press Enter.
+        </div>
+
+        <div class="instruction-step">
+            <strong>Option 3: Start menu</strong><br>
+            Type "Flask Manager" in the Windows Start menu search and click the application.
+        </div>
+
+        <h2>First time usage</h2>
+
+        <p>When you first launch Flask Manager, you will be asked to choose between:</p>
+        <ul style="margin-left: 24px; margin-top: 8px;">
+            <li><strong>Current user</strong> - Projects stored in <code>%USERPROFILE%\flask_manager</code></li>
+            <li><strong>All users</strong> - Projects stored in <code>C:\Users\flask_manager</code></li>
+        </ul>
+
+        <p>The manager will also verify that Python and Visual Studio Code are installed. If missing, it will guide you through the installation process.</p>
+
+        <h2>System requirements</h2>
+        <ul style="margin-left: 24px; margin-top: 8px;">
+            <li>Windows 10 or Windows 11</li>
+            <li>Internet connection (for initial download and Python/VS Code installation)</li>
+            <li>Administrator privileges (for installation only)</li>
+        </ul>
+
+        <hr>
+
+        <h2>Uninstalling</h2>
+        <p>To completely remove Flask Manager from your system:</p>
+        <div class="code-block">Run as Administrator: rmdir /s /q "C:\Program Files\FlaskProjectManager"</div>
+        <p>Then manually remove <code>C:\Program Files\FlaskProjectManager</code> from your system PATH via Environment Variables.</p>
 
         <div class="footer">
-            <p>
-                <ion-icon name="shield-checkmark-outline"></ion-icon> Requires administrator privileges
-                | <ion-icon name="folder-outline"></ion-icon> Installs to Program Files
-                | <ion-icon name="logo-python"></ion-icon> Python and VS Code auto-installed if missing
-            </p>
+            Flask Manager | Windows only | Open source
         </div>
     </div>
 
-    <div id="message" class="message"></div>
-
     <script>
-        const INSTALL_DIR = 'C:\\Program Files\\FlaskProjectManager';
-        const EXE_PATH = INSTALL_DIR + '\\flask_manager.exe';
-
-        function showMessage(text, type) {
-            const msgDiv = document.getElementById('message');
-            const icon = type === 'success' ? 'checkmark-circle-outline' : 
-                        type === 'error' ? 'close-circle-outline' : 'information-circle-outline';
-            msgDiv.innerHTML = '<ion-icon name="' + icon + '"></ion-icon><span>' + text + '</span>';
-            msgDiv.className = 'message ' + type;
-            msgDiv.style.display = 'flex';
-            setTimeout(() => {
-                msgDiv.style.display = 'none';
-            }, 3000);
+        function detectOS() {
+            const userAgent = navigator.userAgent || navigator.platform;
+            const isWindows = /Win32|Win64|Windows|Windows NT|Win16/.test(userAgent);
+            return isWindows;
         }
 
-        function checkInstallation() {
-            const statusIcon = document.getElementById('statusIcon');
-            const statusText = document.getElementById('statusText');
-            const locationDiv = document.getElementById('location');
-            const mainButtons = document.getElementById('mainButtons');
-            const buttonGroup = document.getElementById('buttonGroup');
+        function showDownloadButton() {
+            const container = document.getElementById('downloadContainer');
+            const isWindows = detectOS();
+            const osStatusDiv = document.getElementById('osStatus');
 
-            const scriptPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/installer.cmd';
-            
-            fetch(scriptPath, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        statusIcon.innerHTML = '<ion-icon name="checkmark-circle-outline"></ion-icon>';
-                        statusIcon.className = 'status-icon installed';
-                        statusText.textContent = 'Installer script found. Ready to install.';
-                        statusText.className = 'status-text installed';
-                        locationDiv.textContent = 'Installer location: ' + scriptPath;
-                    } else {
-                        statusIcon.innerHTML = '<ion-icon name="warning-outline"></ion-icon>';
-                        statusIcon.className = 'status-icon not-installed';
-                        statusText.textContent = 'Installer script not found. Please ensure installer.cmd is in the same folder.';
-                        statusText.className = 'status-text not-installed';
-                        locationDiv.textContent = 'Expected location: ' + scriptPath;
-                    }
-                })
-                .catch(() => {
-                    statusIcon.innerHTML = '<ion-icon name="warning-outline"></ion-icon>';
-                    statusIcon.className = 'status-icon not-installed';
-                    statusText.textContent = 'Cannot verify installer. Please check file permissions.';
-                    statusText.className = 'status-text not-installed';
-                });
-        }
-
-        function runCommand(cmd) {
-            return new Promise((resolve, reject) => {
-                const shell = new ActiveXObject('WScript.Shell');
-                try {
-                    const result = shell.Run(cmd, 0, true);
-                    resolve(result);
-                } catch(e) {
-                    reject(e);
-                }
-            });
-        }
-
-        function installApp() {
-            const scriptPath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + '/installer.cmd';
-            const fullPath = scriptPath.replace(/^\//, '');
-            
-            showMessage('Starting installation process. Please wait...', 'info');
-            
-            try {
-                const shell = new ActiveXObject('Shell.Application');
-                shell.ShellExecute(fullPath, '', '', 'runas', 1);
-                showMessage('Installation started in new window. Please follow the prompts.', 'success');
-            } catch(e) {
-                showMessage('Failed to start installer. Please run installer.cmd manually as Administrator.', 'error');
+            if (isWindows) {
+                osStatusDiv.textContent = 'Windows detected - Compatible';
+                osStatusDiv.className = 'windows-status supported';
+                container.innerHTML = '<a href="installer.cmd" download class="download-button">Download installer.cmd</a>';
+            } else {
+                osStatusDiv.textContent = 'Non-Windows detected - Not compatible';
+                osStatusDiv.className = 'windows-status not-supported';
+                container.innerHTML = '<span class="download-button disabled">Download not available for this operating system</span>';
             }
         }
 
-        function reinstallApp() {
-            installApp();
-        }
-
-        function uninstallApp() {
-            if (confirm('Are you sure you want to uninstall Flask Manager?')) {
-                showMessage('Uninstalling Flask Manager...', 'info');
-                try {
-                    const shell = new ActiveXObject('Shell.Application');
-                    shell.ShellExecute('cmd.exe', '/c rmdir /s /q "' + INSTALL_DIR + '"', '', 'runas', 0);
-                    setTimeout(() => {
-                        showMessage('Uninstall completed. Please refresh the page.', 'success');
-                        setTimeout(() => location.reload(), 2000);
-                    }, 2000);
-                } catch(e) {
-                    showMessage('Uninstall failed. Please run as Administrator.', 'error');
-                }
-            }
-        }
-
-        function launchApp() {
-            try {
-                const shell = new ActiveXObject('WScript.Shell');
-                shell.Run('"' + EXE_PATH + '"', 1, false);
-                showMessage('Flask Manager launched successfully.', 'success');
-            } catch(e) {
-                showMessage('Failed to launch. Please ensure Flask Manager is installed.', 'error');
-            }
-        }
-
-        window.onload = function() {
-            checkInstallation();
-        };
+        window.onload = showDownloadButton;
     </script>
 </body>
 </html>
