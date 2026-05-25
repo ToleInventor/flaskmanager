@@ -154,6 +154,34 @@
             margin: 12px 0;
             overflow-x: auto;
             border-radius: 4px;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #3a5a7a;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: #1e3a5f;
+        }
+
+        .inline-code {
+            background: #e8edf2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #1e3a5f;
         }
 
         .note {
@@ -235,12 +263,12 @@
 
         <div class="instruction-step">
             <strong>Step 1: Download the installer</strong><br>
-            Click the download button above to save <code>installer.ps1</code> to your computer.
+            Click the download button above to save <code class="inline-code">installer.ps1</code> to your computer.
         </div>
 
         <div class="instruction-step">
             <strong>Step 2: Run the installer</strong><br>
-            Right-click on <code>installer.ps1</code> and select <strong>"Run with PowerShell"</strong>.<br>
+            Right-click on <code class="inline-code">installer.ps1</code> and select <strong>"Run with PowerShell"</strong>.<br>
             If a security warning appears, click <strong>"More info"</strong> then <strong>"Run anyway"</strong>.<br>
             The installer will automatically request administrator privileges.
         </div>
@@ -248,7 +276,7 @@
         <div class="instruction-step">
             <strong>Step 3: Follow the prompts</strong><br>
             The installer will:<br>
-            - Create <code>C:\Program Files\FlaskProjectManager</code><br>
+            - Create <code class="inline-code">C:\Program Files\FlaskProjectManager</code><br>
             - Download the Flask Manager executable<br>
             - Add the program to your system PATH<br>
             - Create a Start Menu entry
@@ -269,20 +297,55 @@
         <div class="instruction-step">
             <strong>Method 2: Command Prompt</strong><br>
             Close all Command Prompt windows, open a new one, and type:
-            <div class="code-block">flask_manager</div>
+            <div class="code-block" style="position: relative;">
+                <button class="copy-btn" onclick="copyToClipboard('flask_manager')">Copy</button>
+                <code>flask_manager</code>
+            </div>
         </div>
 
         <div class="instruction-step">
             <strong>Method 3: Run directly</strong><br>
-            <div class="code-block">"C:\Program Files\FlaskProjectManager\flask_manager.exe"</div>
+            <div class="code-block" style="position: relative;">
+                <button class="copy-btn" onclick="copyToClipboard('\"C:\\Program Files\\FlaskProjectManager\\flask_manager.exe\"')">Copy</button>
+                <code>"C:\Program Files\FlaskProjectManager\flask_manager.exe"</code>
+            </div>
+        </div>
+
+        <h2>Manual PATH Configuration</h2>
+
+        <p>If the installer did not add Flask Manager to your PATH, or if you want to set it up manually, use one of the following methods:</p>
+
+        <h3>Option A: Add to System PATH (Recommended)</h3>
+        <p>Run this command in <strong>PowerShell as Administrator</strong>:</p>
+        <div class="code-block" style="position: relative;">
+            <button class="copy-btn" onclick="copyToClipboard('[Environment]::SetEnvironmentVariable(\"Path\", [Environment]::GetEnvironmentVariable(\"Path\", \"Machine\") + \";C:\\Program Files\\FlaskProjectManager\", \"Machine\")')">Copy</button>
+            <code>[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\FlaskProjectManager", "Machine")</code>
+        </div>
+
+        <h3>Option B: Create a Permanent Alias (User Level)</h3>
+        <p>This creates a PowerShell profile with a <code class="inline-code">flask_manager</code> function that works like a native command:</p>
+        <div class="code-block" style="position: relative;">
+            <button class="copy-btn" onclick="copyToClipboard('$profileDir = Split-Path $PROFILE -Parent; if (!(Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force }; Add-Content $PROFILE \"`nfunction flask_manager { & 'C:\Program Files\FlaskProjectManager\flask_manager.exe' `$args }\"')">Copy</button>
+            <code>$profileDir = Split-Path $PROFILE -Parent; if (!(Test-Path $profileDir)) { New-Item -ItemType Directory -Path $profileDir -Force }; Add-Content $PROFILE "`nfunction flask_manager { & 'C:\Program Files\FlaskProjectManager\flask_manager.exe' $args }"</code>
+        </div>
+
+        <h3>Option C: Add to User PATH via Command Prompt</h3>
+        <p>Run this in <strong>Command Prompt as Administrator</strong>:</p>
+        <div class="code-block" style="position: relative;">
+            <button class="copy-btn" onclick="copyToClipboard('setx PATH \"%PATH%;C:\\Program Files\\FlaskProjectManager\"')">Copy</button>
+            <code>setx PATH "%PATH%;C:\Program Files\FlaskProjectManager"</code>
+        </div>
+
+        <div class="note warning">
+            <strong>Important:</strong> After running any PATH modification command, you must <strong>restart your Command Prompt or PowerShell window</strong> for the changes to take effect. A full system restart is recommended to ensure all applications recognize the new PATH.
         </div>
 
         <h2>First Time Usage</h2>
 
         <p>When you first launch Flask Manager, you will be asked to choose between:</p>
         <ul>
-            <li><strong>Current user</strong> - Projects stored in <code>%USERPROFILE%\flask_manager</code></li>
-            <li><strong>All users</strong> - Projects stored in <code>C:\Users\flask_manager</code></li>
+            <li><strong>Current user</strong> - Projects stored in <code class="inline-code">%USERPROFILE%\flask_manager</code></li>
+            <li><strong>All users</strong> - Projects stored in <code class="inline-code">C:\Users\flask_manager</code></li>
         </ul>
 
         <p>The manager will verify that Python and Visual Studio Code are installed. If missing, it will guide you through the installation process or open the download pages.</p>
@@ -302,13 +365,19 @@
         <hr>
 
         <h2>Uninstalling</h2>
-        <p>To completely remove Flask Manager from your system:</p>
-        <div class="code-block">Run as Administrator: rmdir /s /q "C:\Program Files\FlaskProjectManager"</div>
-        <p>Then manually remove <code>C:\Program Files\FlaskProjectManager</code> from your system PATH via Environment Variables.</p>
+        <p>To completely remove Flask Manager from your system, run this in <strong>PowerShell as Administrator</strong>:</p>
+        <div class="code-block" style="position: relative;">
+            <button class="copy-btn" onclick="copyToClipboard('Remove-Item -Path \"C:\\Program Files\\FlaskProjectManager\" -Recurse -Force')">Copy</button>
+            <code>Remove-Item -Path "C:\Program Files\FlaskProjectManager" -Recurse -Force</code>
+        </div>
+        <p>Then manually remove <code class="inline-code">C:\Program Files\FlaskProjectManager</code> from your system PATH via Environment Variables.</p>
 
         <h2>Source Code</h2>
         <p>Flask Manager is open source. View the project on GitHub:</p>
-        <div class="code-block">https://github.com/ToleInventor/flaskmanager</div>
+        <div class="code-block" style="position: relative;">
+            <button class="copy-btn" onclick="copyToClipboard('https://github.com/ToleInventor/flaskmanager')">Copy</button>
+            <code>https://github.com/ToleInventor/flaskmanager</code>
+        </div>
 
         <div class="footer">
             Flask Manager | Created by ToleInventor | Windows Only
@@ -336,6 +405,14 @@
                 osStatusDiv.className = 'windows-status not-supported';
                 container.innerHTML = '<span class="download-button disabled">Download not available for this operating system</span>';
             }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Copied to clipboard!');
+            }, function() {
+                alert('Failed to copy. Please copy manually.');
+            });
         }
 
         window.onload = showDownloadButton;
