@@ -1,5 +1,5 @@
 @echo off
-title Flask Project Manager
+title Flask Project Manager Installer
 setlocal enabledelayedexpansion
 
 :: Auto-elevate to Administrator
@@ -10,153 +10,114 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
+cls
+echo ========================================
+echo    Flask Project Manager Installer
+echo ========================================
+echo.
+
 set "INSTALL_DIR=%ProgramFiles%\FlaskProjectManager"
 set "EXE_URL=https://raw.githubusercontent.com/ToleInventor/flaskmanager/main/flask_manager.exe"
 set "EXE_PATH=%INSTALL_DIR%\flask_manager.exe"
 
-:START
-cls
-echo ========================================
-echo    Flask Project Manager
-echo ========================================
-echo.
-
 if exist "%EXE_PATH%" (
-    echo [STATUS] Flask Manager is INSTALLED
-    echo.
+    echo Flask Manager is already installed.
     echo Location: %EXE_PATH%
     echo.
-    echo ========================================
-    echo Choose an option:
+    set /p REINSTALL="Reinstall? (y/n): "
+    if /i not "!REINSTALL!"=="y" (
+        echo Installation cancelled.
+        pause
+        exit /b 0
+    )
     echo.
-    echo   1. Launch Flask Manager
-    echo   2. Uninstall Flask Manager
-    echo   3. Exit
-    echo.
-    set /p CHOICE="Enter choice (1/2/3): "
-    
-    if "!CHOICE!"=="1" goto LAUNCH
-    if "!CHOICE!"=="2" goto UNINSTALL
-    if "!CHOICE!"=="3" goto EXIT
-    goto START
-) else (
-    echo [STATUS] Flask Manager is NOT INSTALLED
-    echo.
-    echo Would you like to install it now?
-    echo.
-    set /p INSTALL_CHOICE="Install Flask Manager? (y/n): "
-    if /i "!INSTALL_CHOICE!"=="y" goto INSTALL
-    goto EXIT
 )
 
-:INSTALL
-cls
-echo ========================================
-echo    Installing Flask Manager
-echo ========================================
-echo.
-
-echo Creating installation directory...
+echo [1/4] Creating installation directory...
 mkdir "%INSTALL_DIR%" 2>nul
-
-echo Downloading flask_manager.exe from GitHub...
-powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%EXE_URL%' -OutFile '%EXE_PATH%'}"
-
-if not exist "%EXE_PATH%" (
-    echo.
-    echo Download failed. Please check your internet connection.
+if not exist "%INSTALL_DIR%" (
+    echo ERROR: Failed to create directory. Run as Administrator.
     pause
-    goto EXIT
+    exit /b 1
 )
-
-echo Download complete.
+echo        Done.
 echo.
 
-echo Adding to system PATH...
-set "PATH_ENTRY=%INSTALL_DIR%"
+echo [2/4] Downloading flask_manager.exe...
+powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%EXE_URL%' -OutFile '%EXE_PATH%'}" >nul 2>&1
+if not exist "%EXE_PATH%" (
+    echo ERROR: Download failed. Check internet connection.
+    pause
+    exit /b 1
+)
+echo        Done.
+echo.
+
+echo [3/4] Adding to system PATH...
+
+:: Get current PATH from registry
 for /f "skip=2 tokens=3*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "CURRENT_PATH=%%a %%b"
-echo "!CURRENT_PATH!" | find /i "!PATH_ENTRY!" >nul
+
+:: Remove trailing space
+set "CURRENT_PATH=!CURRENT_PATH: =!"
+
+:: Check if already in PATH
+echo !CURRENT_PATH! | find /i "%INSTALL_DIR%" >nul
 if errorlevel 1 (
-    setx /m Path "!CURRENT_PATH!;!PATH_ENTRY!" >nul
-    echo Added to system PATH.
+    :: Use PowerShell to add PATH (handles long paths correctly)
+    powershell -Command "[Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';%INSTALL_DIR%', 'Machine')" >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo        Added to system PATH.
+    ) else (
+        echo        WARNING: Could not add to PATH via PowerShell.
+        echo        Please add manually: %INSTALL_DIR%
+    )
 ) else (
-    echo Already in system PATH.
+    echo        Already in system PATH.
 )
-
-echo.
-echo ========================================
-echo Installation Successful!
-echo ========================================
-echo.
-echo You can now run 'flask_manager' from any Command Prompt.
-echo.
-pause
-goto LAUNCH
-
-:UNINSTALL
-cls
-echo ========================================
-echo    Uninstalling Flask Manager
-echo ========================================
 echo.
 
-set /p CONFIRM="Are you sure you want to uninstall? (y/n): "
-if /i not "!CONFIRM!"=="y" goto START
-
-echo.
-echo Removing from system PATH...
-
-for /f "skip=2 tokens=3*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path 2^>nul') do set "CURRENT_PATH=%%a %%b"
-set "NEW_PATH=!CURRENT_PATH!;"
-set "NEW_PATH=!NEW_PATH:%INSTALL_DIR%;=;!"
-set "NEW_PATH=!NEW_PATH:%INSTALL_DIR%=!"
-set "NEW_PATH=!NEW_PATH:;;=;!"
-if "!NEW_PATH:~-1!"==";" set "NEW_PATH=!NEW_PATH:~0,-1!"
-if "!NEW_PATH:~0,1!"==";" set "NEW_PATH=!NEW_PATH:~1!"
-
-setx /m Path "!NEW_PATH!" >nul
-echo Removed from system PATH.
-
-echo Deleting installation directory...
-rmdir /s /q "%INSTALL_DIR%" 2>nul
-
-if not exist "%EXE_PATH%" (
-    echo.
-    echo ========================================
-    echo Uninstall Successful!
-    echo ========================================
+echo [4/4] Verifying installation...
+if exist "%EXE_PATH%" (
+    echo        Verified: %EXE_PATH%
 ) else (
-    echo.
-    echo Uninstall failed. Some files could not be deleted.
-    echo Close any programs using flask_manager and try again.
-)
-
-echo.
-pause
-goto START
-
-:LAUNCH
-cls
-echo ========================================
-echo    Launching Flask Manager
-echo ========================================
-echo.
-
-if not exist "%EXE_PATH%" (
-    echo Error: flask_manager.exe not found.
-    echo Please reinstall the application.
+    echo        ERROR: Installation file missing.
     pause
-    goto START
+    exit /b 1
 )
-
-echo Starting Flask Manager...
-start "" "%EXE_PATH%"
 echo.
-echo Flask Manager is now running in a new window.
-echo You can close this window.
+
+echo ========================================
+echo    INSTALLATION COMPLETE
+echo ========================================
+echo.
+echo Flask Manager has been installed to:
+echo   %INSTALL_DIR%
+echo.
+echo ========================================
+echo    HOW TO RUN
+echo ========================================
+echo.
+echo METHOD 1 - Command Prompt (after PATH is set):
+echo   1. Close ALL Command Prompt windows
+echo   2. Open a NEW Command Prompt
+echo   3. Type: flask_manager
+echo.
+echo METHOD 2 - Run directly (always works):
+echo   "%EXE_PATH%"
+echo.
+echo METHOD 3 - Create desktop shortcut:
+echo   1. Right-click desktop
+echo   2. New -> Shortcut
+echo   3. Location: "%EXE_PATH%"
+echo   4. Name: Flask Manager
+echo.
+echo ========================================
+echo    TROUBLESHOOTING
+echo ========================================
+echo.
+echo If 'flask_manager' is not recognized:
+echo   1. Restart your computer (this forces PATH refresh)
+echo   2. Or use METHOD 2 or 3 above
 echo.
 pause
-goto EXIT
-
-:EXIT
-exit /b
