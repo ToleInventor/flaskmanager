@@ -13,227 +13,291 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #ffffff;
-            color: #1a1a1a;
+            background: #f0f4f8;
+            color: #1a2a3a;
             line-height: 1.5;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 48px 24px;
         }
 
+        .header {
+            text-align: center;
+            padding: 48px 0 32px 0;
+            border-bottom: 1px solid #d0dde8;
+        }
+
         h1 {
-            font-size: 32px;
-            font-weight: 500;
-            margin-bottom: 8px;
+            font-size: 42px;
+            font-weight: 600;
+            color: #1e3a5f;
             letter-spacing: -0.5px;
-        }
-
-        h2 {
-            font-size: 20px;
-            font-weight: 500;
-            margin: 32px 0 16px 0;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e5e5e5;
-        }
-
-        h3 {
-            font-size: 16px;
-            font-weight: 500;
-            margin: 24px 0 8px 0;
+            margin-bottom: 12px;
         }
 
         .subtitle {
-            color: #666666;
-            margin-bottom: 32px;
             font-size: 18px;
-            font-weight: 400;
+            color: #4a627a;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            font-weight: 500;
         }
 
         .detection-box {
-            background: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            padding: 24px;
-            margin: 32px 0;
+            background: white;
+            border: 1px solid #d0dde8;
+            padding: 32px;
+            margin: 40px 0;
             text-align: center;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
         .detection-status {
             font-size: 14px;
-            color: #666666;
-            margin-bottom: 16px;
+            color: #4a627a;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .windows-status {
             display: inline-block;
-            padding: 4px 12px;
-            font-size: 13px;
+            padding: 6px 16px;
+            font-size: 14px;
             font-weight: 500;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
+            border-radius: 4px;
         }
 
         .windows-status.supported {
-            background: #1a1a1a;
-            color: #ffffff;
+            background: #1e3a5f;
+            color: white;
         }
 
         .windows-status.not-supported {
-            background: #e0e0e0;
-            color: #666666;
+            background: #e8edf2;
+            color: #4a627a;
         }
 
         .download-button {
             display: inline-block;
-            background: #1a1a1a;
-            color: #ffffff;
+            background: #1e3a5f;
+            color: white;
             text-decoration: none;
-            padding: 14px 32px;
+            padding: 14px 36px;
             font-size: 16px;
             font-weight: 500;
             border: none;
             cursor: pointer;
+            border-radius: 4px;
             transition: background 0.2s ease;
         }
 
         .download-button:hover {
-            background: #333333;
+            background: #0f2a45;
         }
 
         .download-button.disabled {
-            background: #cccccc;
+            background: #b8c4ce;
             cursor: not-allowed;
         }
 
+        h2 {
+            font-size: 24px;
+            font-weight: 500;
+            margin: 48px 0 20px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1e3a5f;
+            color: #1e3a5f;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 24px 0 12px 0;
+            color: #1e3a5f;
+        }
+
         .instruction-step {
+            background: white;
+            border-left: 3px solid #1e3a5f;
+            padding: 16px 20px;
             margin: 16px 0;
-            padding-left: 24px;
-            border-left: 2px solid #1a1a1a;
+            border-radius: 0 6px 6px 0;
         }
 
         .instruction-step strong {
+            color: #1e3a5f;
             font-weight: 600;
         }
 
         .code-block {
-            background: #f5f5f5;
+            background: #1e2a36;
+            color: #e8edf2;
             padding: 12px 16px;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
             font-size: 14px;
             margin: 12px 0;
             overflow-x: auto;
-            border: 1px solid #e5e5e5;
+            border-radius: 4px;
         }
 
         .note {
-            background: #f9f9f9;
-            border-left: 3px solid #1a1a1a;
-            padding: 16px;
+            background: #e8f0fe;
+            border-left: 3px solid #1e3a5f;
+            padding: 16px 20px;
             margin: 24px 0;
             font-size: 14px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .note.warning {
+            background: #fef5e7;
+            border-left-color: #d4a11e;
         }
 
         hr {
             border: none;
-            border-top: 1px solid #e5e5e5;
+            border-top: 1px solid #d0dde8;
             margin: 48px 0;
         }
 
         .footer {
             margin-top: 64px;
             padding-top: 24px;
-            border-top: 1px solid #e5e5e5;
+            border-top: 1px solid #d0dde8;
             font-size: 13px;
-            color: #999999;
+            color: #7a8ea8;
             text-align: center;
+        }
+
+        .footer a {
+            color: #1e3a5f;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        ul {
+            margin-left: 24px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+
+        li {
+            margin: 8px 0;
         }
 
         @media (max-width: 600px) {
             .container {
-                padding: 32px 20px;
+                padding: 24px 16px;
             }
             h1 {
-                font-size: 28px;
+                font-size: 32px;
+            }
+            .header {
+                padding: 24px 0;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Flask Manager</h1>
-        <div class="subtitle">Automated Flask project management for Windows</div>
-
-        <p>Flask Manager is a command-line tool that automates the creation, management, and execution of Flask web applications on Windows. It handles virtual environments, dependency installation, and project scaffolding.</p>
+        <div class="header">
+            <div class="badge">Windows Only</div>
+            <h1>Flask Manager</h1>
+            <div class="subtitle">Automated Flask project management for Windows developers</div>
+        </div>
 
         <div class="detection-box">
-            <div class="detection-status">Operating system detection</div>
+            <div class="detection-status">Operating System Detection</div>
             <div id="osStatus" class="windows-status"></div>
             <div id="downloadContainer"></div>
         </div>
 
-        <h2>Installation instructions</h2>
+        <h2>Installation Instructions</h2>
 
         <div class="instruction-step">
-            <strong>Step 1</strong><br>
-            Click the download button above to save <code>installer.cmd</code> to your computer.
+            <strong>Step 1: Download the installer</strong><br>
+            Click the download button above to save <code>installer.ps1</code> to your computer.
         </div>
 
         <div class="instruction-step">
-            <strong>Step 2</strong><br>
-            Locate the downloaded file (usually in your Downloads folder).<br>
-            <strong>Right-click</strong> on <code>installer.cmd</code> and select <strong>"Run as administrator"</strong>.
+            <strong>Step 2: Run the installer</strong><br>
+            Right-click on <code>installer.ps1</code> and select <strong>"Run with PowerShell"</strong>.<br>
+            If a security warning appears, click <strong>"More info"</strong> then <strong>"Run anyway"</strong>.<br>
+            The installer will automatically request administrator privileges.
         </div>
 
         <div class="instruction-step">
-            <strong>Step 3</strong><br>
-            Follow the on-screen prompts. The installer will:<br>
+            <strong>Step 3: Follow the prompts</strong><br>
+            The installer will:<br>
+            - Create <code>C:\Program Files\FlaskProjectManager</code><br>
             - Download the Flask Manager executable<br>
-            - Install it to <code>C:\Program Files\FlaskProjectManager</code><br>
             - Add the program to your system PATH<br>
-            - Verify Python and VS Code installations (install if missing)
+            - Create a Start Menu entry
         </div>
 
         <div class="note">
             <strong>Administrator privileges required</strong><br>
-            The installer must run with administrator privileges to write to Program Files and modify the system PATH. Right-click the file and select "Run as administrator".
+            The installer needs administrator access to write to Program Files and modify the system PATH. The script will automatically request elevation via UAC.
         </div>
 
-        <h2>How to run Flask Manager after installation</h2>
+        <h2>How to Run Flask Manager After Installation</h2>
 
         <div class="instruction-step">
-            <strong>Option 1: Command Prompt (recommended)</strong><br>
-            Open any Command Prompt window and type:
+            <strong>Method 1: Windows Search (recommended)</strong><br>
+            Press the <strong>Windows key</strong>, type <strong>"Flask Manager"</strong>, and press Enter.
+        </div>
+
+        <div class="instruction-step">
+            <strong>Method 2: Command Prompt</strong><br>
+            Close all Command Prompt windows, open a new one, and type:
             <div class="code-block">flask_manager</div>
-            Press Enter. The manager dashboard will appear.
         </div>
 
         <div class="instruction-step">
-            <strong>Option 2: Run dialog</strong><br>
-            Press <code>Windows + R</code>, type <code>flask_manager</code>, and press Enter.
+            <strong>Method 3: Run directly</strong><br>
+            <div class="code-block">"C:\Program Files\FlaskProjectManager\flask_manager.exe"</div>
         </div>
 
-        <div class="instruction-step">
-            <strong>Option 3: Start menu</strong><br>
-            Type "Flask Manager" in the Windows Start menu search and click the application.
-        </div>
-
-        <h2>First time usage</h2>
+        <h2>First Time Usage</h2>
 
         <p>When you first launch Flask Manager, you will be asked to choose between:</p>
-        <ul style="margin-left: 24px; margin-top: 8px;">
+        <ul>
             <li><strong>Current user</strong> - Projects stored in <code>%USERPROFILE%\flask_manager</code></li>
             <li><strong>All users</strong> - Projects stored in <code>C:\Users\flask_manager</code></li>
         </ul>
 
-        <p>The manager will also verify that Python and Visual Studio Code are installed. If missing, it will guide you through the installation process.</p>
+        <p>The manager will verify that Python and Visual Studio Code are installed. If missing, it will guide you through the installation process or open the download pages.</p>
 
-        <h2>System requirements</h2>
-        <ul style="margin-left: 24px; margin-top: 8px;">
+        <h2>System Requirements</h2>
+        <ul>
             <li>Windows 10 or Windows 11</li>
-            <li>Internet connection (for initial download and Python/VS Code installation)</li>
+            <li>Internet connection (for initial download)</li>
             <li>Administrator privileges (for installation only)</li>
         </ul>
+
+        <div class="note warning">
+            <strong>Python and VS Code</strong><br>
+            Flask Manager requires Python and Visual Studio Code. If not found, the application will redirect you to the official download pages.
+        </div>
 
         <hr>
 
@@ -242,8 +306,12 @@
         <div class="code-block">Run as Administrator: rmdir /s /q "C:\Program Files\FlaskProjectManager"</div>
         <p>Then manually remove <code>C:\Program Files\FlaskProjectManager</code> from your system PATH via Environment Variables.</p>
 
+        <h2>Source Code</h2>
+        <p>Flask Manager is open source. View the project on GitHub:</p>
+        <div class="code-block">https://github.com/ToleInventor/flaskmanager</div>
+
         <div class="footer">
-            Flask Manager | Windows only | Open source
+            Flask Manager | Created by ToleInventor | Windows Only
         </div>
     </div>
 
@@ -260,11 +328,11 @@
             const osStatusDiv = document.getElementById('osStatus');
 
             if (isWindows) {
-                osStatusDiv.textContent = 'Windows detected - Compatible';
+                osStatusDiv.textContent = 'Windows Detected - Compatible';
                 osStatusDiv.className = 'windows-status supported';
-                container.innerHTML = '<a href="installer.cmd" download class="download-button">Download installer.cmd</a>';
+                container.innerHTML = '<a href="installer.ps1" download class="download-button">Download installer.ps1</a>';
             } else {
-                osStatusDiv.textContent = 'Non-Windows detected - Not compatible';
+                osStatusDiv.textContent = 'Non-Windows Detected - Not Compatible';
                 osStatusDiv.className = 'windows-status not-supported';
                 container.innerHTML = '<span class="download-button disabled">Download not available for this operating system</span>';
             }
