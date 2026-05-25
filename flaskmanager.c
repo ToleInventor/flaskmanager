@@ -8,26 +8,37 @@
 
 
 
-int runCommand(const char *cmdLine)
+int runCommandVerbose(const char *cmdLine, int showOutput)
 {
     STARTUPINFOA si = { sizeof(si) };
     PROCESS_INFORMATION pi = { 0 };
     char cmd[CMD_BUFFER_SIZE];
 
-    si.dwFlags = STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_HIDE;
+    printf("[CMD] %s\n", cmdLine);
 
     snprintf(cmd, sizeof(cmd), "cmd.exe /c \"%s\"", cmdLine);
 
-    if (!CreateProcessA(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-        return -1;
+    if (showOutput)
+    {
+        si.dwFlags = STARTF_USESHOWWINDOW;
+        si.wShowWindow = SW_SHOW;
+        if (!CreateProcessA(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+            return -1;
+    }
+    else
+    {
+        si.dwFlags = STARTF_USESHOWWINDOW;
+        si.wShowWindow = SW_HIDE;
+        if (!CreateProcessA(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+            return -1;
+    }
 
     WaitForSingleObject(pi.hProcess, INFINITE);
     DWORD exitCode = 0;
     GetExitCodeProcess(pi.hProcess, &exitCode);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
-    return exitCode;
+    return (int)exitCode;
 }
 
 
@@ -40,11 +51,20 @@ int directoryExists(const char *path)
 
 
 
+int fileExists(const char *path)
+{
+    DWORD attrs = GetFileAttributesA(path);
+    return (attrs != INVALID_FILE_ATTRIBUTES);
+}
+
+
+
 int createDirectoryCmd(const char *path)
 {
     char cmd[CMD_BUFFER_SIZE];
-    snprintf(cmd, sizeof(cmd), "mkdir \"%s\"", path);
-    return runCommand(cmd);
+    snprintf(cmd, sizeof(cmd), "mkdir \"%s\" 2>nul", path);
+    printf("Creating directory: %s\n", path);
+    return runCommandVerbose(cmd, 0);
 }
 
 
@@ -53,56 +73,156 @@ int removeDirectoryCmd(const char *path)
 {
     char cmd[CMD_BUFFER_SIZE];
     snprintf(cmd, sizeof(cmd), "rmdir /s /q \"%s\"", path);
-    return runCommand(cmd);
+    printf("Removing directory: %s\n", path);
+    return runCommandVerbose(cmd, 0);
 }
 
 
 
-int writeFileContent(const char *path, const char *content)
+int writeFileLines(const char *path, const char *lines[], int lineCount)
 {
     char cmd[CMD_BUFFER_SIZE];
-    char escaped[CMD_BUFFER_SIZE];
-    const char *src = content;
-    char *dst = escaped;
-    while (*src && (dst - escaped) < (CMD_BUFFER_SIZE - 10))
+
+    printf("Writing file: %s\n", path);
+    snprintf(cmd, sizeof(cmd), "type nul > \"%s\"", path);
+    if (runCommandVerbose(cmd, 0) != 0) return -1;
+
+    for (int i = 0; i < lineCount; i++)
     {
-        if (*src == '>' || *src == '<' || *src == '|' || *src == '&' || *src == '%')
+        if (strlen(lines[i]) == 0)
         {
-            *dst++ = '^';
+            snprintf(cmd, sizeof(cmd), "echo. >> \"%s\"", path);
+            if (runCommandVerbose(cmd, 0) != 0) return -1;
         }
-        *dst++ = *src++;
+        else
+        {
+            char escaped[CMD_BUFFER_SIZE];
+            const char *src = lines[i];
+            char *dst = escaped;
+            while (*src && (dst - escaped) < (CMD_BUFFER_SIZE - 10))
+            {
+                if (*src == '>' || *src == '<' || *src == '|' || *src == '&' || *src == '%' || *src == '"' || *src == '(' || *src == ')')
+                {
+                    *dst++ = '^';
+                }
+                *dst++ = *src++;
+            }
+            *dst = '\0';
+            snprintf(cmd, sizeof(cmd), "echo %s >> \"%s\"", escaped, path);
+            if (runCommandVerbose(cmd, 0) != 0) return -1;
+        }
     }
-    *dst = '\0';
-    snprintf(cmd, sizeof(cmd), "echo %s > \"%s\"", escaped, path);
-    return runCommand(cmd);
+    return 0;
 }
 
 
 
-int appendFileContent(const char *path, const char *content)
+int readFileToString(const char *path, char *buffer, int bufferSize)
+{
+    FILE *f = fopen(path, "r");
+    if (!f) return -1;
+    size_t len = fread(buffer, 1, bufferSize - 1, f);
+    buffer[len] = '\0';
+    fclose(f);
+    return 0;
+}
+
+
+
+int computeRequirementsHash(const char *projectPath, char *hashOut, int hashOutSize)
+{
+    char reqPath[BUFFER_SIZE];
+    char cmd[CMD_BUFFER_SIZE];
+    char tempFile[BUFFER_SIZE];
+    snprintf(reqPath, sizeof(reqPath), "%s\\requirements.txt", projectPath);
+    if (!fileExists(reqPath))
+    {
+        snprintf(hashOut, hashOutSize, "no_requirements");
+        return 0;
+    }
+    GetTempPathA(BUFFER_SIZE, tempFile);
+    strcat(tempFile, "flaskman_hash.tmp");
+    snprintf(cmd, sizeof(cmd), "certutil -hashfile \"%s\" MD5 > \"%s\"", reqPath, tempFile);
+    runCommandVerbose(cmd, 0);
+    char rawHash[BUFFER_SIZE] = {0};
+    readFileToString(tempFile, rawHash, sizeof(rawHash));
+    remove(tempFile);
+    char *newline = strchr(rawHash, '\n');
+    if (newline) *newline = '\0';
+    snprintf(hashOut, hashOutSize, "%s", rawHash);
+    return 0;
+}
+
+
+
+void updateFlaskMan(const char *projectPath, const char *hash)
+{
+    char flaskmanPath[BUFFER_SIZE];
+    snprintf(flaskmanPath, sizeof(flaskmanPath), "%s\\.flaskman", projectPath);
+    const char *lines[] = { hash };
+    writeFileLines(flaskmanPath, lines, 1);
+    printf("Updated .flaskman with hash: %s\n", hash);
+}
+
+
+
+int dependenciesMatch(const char *projectPath)
+{
+    char flaskmanPath[BUFFER_SIZE];
+    char storedHash[BUFFER_SIZE] = {0};
+    char currentHash[BUFFER_SIZE] = {0};
+    snprintf(flaskmanPath, sizeof(flaskmanPath), "%s\\.flaskman", projectPath);
+    if (!fileExists(flaskmanPath))
+        return 0;
+    if (readFileToString(flaskmanPath, storedHash, sizeof(storedHash)) != 0)
+        return 0;
+    storedHash[strcspn(storedHash, "\n\r")] = 0;
+    computeRequirementsHash(projectPath, currentHash, sizeof(currentHash));
+    return (strcmp(storedHash, currentHash) == 0);
+}
+
+
+
+void installRequirements(const char *projectPath)
 {
     char cmd[CMD_BUFFER_SIZE];
-    char escaped[CMD_BUFFER_SIZE];
-    const char *src = content;
-    char *dst = escaped;
-    while (*src && (dst - escaped) < (CMD_BUFFER_SIZE - 10))
+    char reqPath[BUFFER_SIZE];
+    snprintf(reqPath, sizeof(reqPath), "%s\\requirements.txt", projectPath);
+    if (!fileExists(reqPath))
     {
-        if (*src == '>' || *src == '<' || *src == '|' || *src == '&' || *src == '%')
-        {
-            *dst++ = '^';
-        }
-        *dst++ = *src++;
+        printf("No requirements.txt found. Nothing to install.\n");
+        return;
     }
-    *dst = '\0';
-    snprintf(cmd, sizeof(cmd), "echo %s >> \"%s\"", escaped, path);
-    return runCommand(cmd);
+    printf("Installing dependencies from requirements.txt...\n");
+    snprintf(cmd, sizeof(cmd), "cd /d \"%s\" && venv\\Scripts\\pip install -r requirements.txt", projectPath);
+    runCommandVerbose(cmd, 1);
+    char newHash[BUFFER_SIZE];
+    computeRequirementsHash(projectPath, newHash, sizeof(newHash));
+    updateFlaskMan(projectPath, newHash);
+    printf("Dependencies installation completed.\n");
+}
+
+
+
+void ensureDependenciesMatch(const char *projectPath)
+{
+    if (!dependenciesMatch(projectPath))
+    {
+        printf("Dependencies out of sync. Installing missing packages...\n");
+        installRequirements(projectPath);
+    }
+    else
+    {
+        printf("Dependencies are up to date.\n");
+    }
 }
 
 
 
 int checkPython(void)
 {
-    int ret = runCommand("python --version > nul 2>&1");
+    printf("Checking for Python...\n");
+    int ret = runCommandVerbose("python --version", 1);
     return (ret == 0);
 }
 
@@ -110,7 +230,8 @@ int checkPython(void)
 
 int checkVSCode(void)
 {
-    int ret = runCommand("code --version > nul 2>&1");
+    printf("Checking for Visual Studio Code...\n");
+    int ret = runCommandVerbose("code --version", 1);
     return (ret == 0);
 }
 
@@ -129,12 +250,14 @@ void installPythonChoice(void)
         fgets(input, sizeof(input), stdin);
         if (input[0] == 'a' || input[0] == 'A')
         {
-            runCommand("winget install --id Python.Python --silent --accept-package-agreements");
+            printf("Installing latest Python...\n");
+            runCommandVerbose("winget install --id Python.Python --silent --accept-package-agreements", 1);
             break;
         }
         else if (input[0] == 'b' || input[0] == 'B')
         {
-            runCommand("winget install --id Python.Python.3.12 --silent --accept-package-agreements");
+            printf("Installing Python 3.12...\n");
+            runCommandVerbose("winget install --id Python.Python.3.12 --silent --accept-package-agreements", 1);
             break;
         }
         else
@@ -149,7 +272,7 @@ void installPythonChoice(void)
 void installVSCode(void)
 {
     printf("Visual Studio Code not found. Installing silently...\n");
-    runCommand("winget install --id Microsoft.VisualStudioCode --silent --accept-package-agreements");
+    runCommandVerbose("winget install --id Microsoft.VisualStudioCode --silent --accept-package-agreements", 1);
 }
 
 
@@ -169,6 +292,7 @@ char* getBasePath(int global)
         if (!userProfile) userProfile = ".";
         snprintf(path, sizeof(path), "%s\\flask_manager", userProfile);
     }
+    printf("Base directory: %s\n", path);
     return path;
 }
 
@@ -236,41 +360,74 @@ char* selectProject(const char *basePath)
 
 
 
-void createFlaskProject(const char *projectPath, const char *projectName)
+int createFlaskProject(const char *projectPath)
 {
-    char cmd[CMD_BUFFER_SIZE];
     char templatesPath[BUFFER_SIZE];
     char staticPath[BUFFER_SIZE];
     char appPath[BUFFER_SIZE];
     char indexPath[BUFFER_SIZE];
+    char gitignorePath[BUFFER_SIZE];
+    char requirementsPath[BUFFER_SIZE];
+    char flaskmanPath[BUFFER_SIZE];
 
     snprintf(templatesPath, sizeof(templatesPath), "%s\\templates", projectPath);
     snprintf(staticPath, sizeof(staticPath), "%s\\static", projectPath);
     snprintf(appPath, sizeof(appPath), "%s\\app.py", projectPath);
     snprintf(indexPath, sizeof(indexPath), "%s\\templates\\index.html", projectPath);
+    snprintf(gitignorePath, sizeof(gitignorePath), "%s\\.gitignore", projectPath);
+    snprintf(requirementsPath, sizeof(requirementsPath), "%s\\requirements.txt", projectPath);
+    snprintf(flaskmanPath, sizeof(flaskmanPath), "%s\\.flaskman", projectPath);
 
-    createDirectoryCmd(projectPath);
-    createDirectoryCmd(templatesPath);
-    createDirectoryCmd(staticPath);
+    printf("Creating Flask project structure at: %s\n", projectPath);
 
-    writeFileContent(appPath, "from flask import Flask, render_template");
-    appendFileContent(appPath, "");
-    appendFileContent(appPath, "app = Flask(__name__)");
-    appendFileContent(appPath, "");
-    appendFileContent(appPath, "@app.route('/')");
-    appendFileContent(appPath, "def home():");
-    appendFileContent(appPath, "    return render_template('index.html')");
-    appendFileContent(appPath, "");
-    appendFileContent(appPath, "if __name__ == '__main__':");
-    appendFileContent(appPath, "    app.run(debug=True)");
+    if (createDirectoryCmd(projectPath) != 0) return -1;
+    if (createDirectoryCmd(templatesPath) != 0) return -1;
+    if (createDirectoryCmd(staticPath) != 0) return -1;
 
-    writeFileContent(indexPath, "<!DOCTYPE html>");
-    appendFileContent(indexPath, "<html>");
-    appendFileContent(indexPath, "<head><title>Flask App</title></head>");
-    appendFileContent(indexPath, "<body>");
-    appendFileContent(indexPath, "<h1>Hello from Flask!</h1>");
-    appendFileContent(indexPath, "</body>");
-    appendFileContent(indexPath, "</html>");
+    const char *appLines[] = {
+        "from flask import Flask, render_template",
+        "",
+        "app = Flask(__name__)",
+        "",
+        "@app.route('/')",
+        "def home():",
+        "    return render_template('index.html')",
+        "",
+        "if __name__ == '__main__':",
+        "    app.run(debug=True)"
+    };
+    if (writeFileLines(appPath, appLines, sizeof(appLines)/sizeof(appLines[0])) != 0) return -1;
+
+    const char *htmlLines[] = {
+        "<!DOCTYPE html>",
+        "<html>",
+        "<head><title>Flask App</title></head>",
+        "<body>",
+        "<h1>Hello from Flask!</h1>",
+        "</body>",
+        "</html>"
+    };
+    if (writeFileLines(indexPath, htmlLines, sizeof(htmlLines)/sizeof(htmlLines[0])) != 0) return -1;
+
+    const char *gitignoreLines[] = {
+        "venv/",
+        "__pycache__/",
+        "*.pyc",
+        ".env",
+        "*.log",
+        ".flaskman"
+    };
+    if (writeFileLines(gitignorePath, gitignoreLines, sizeof(gitignoreLines)/sizeof(gitignoreLines[0])) != 0) return -1;
+
+    const char *requirementsLines[] = {
+        "flask"
+    };
+    if (writeFileLines(requirementsPath, requirementsLines, sizeof(requirementsLines)/sizeof(requirementsLines[0])) != 0) return -1;
+
+    const char *hashPlaceholder[] = { "0" };
+    if (writeFileLines(flaskmanPath, hashPlaceholder, 1) != 0) return -1;
+
+    return 0;
 }
 
 
@@ -284,27 +441,21 @@ void ensureVenv(const char *projectPath)
     {
         printf("Creating virtual environment...\n");
         snprintf(pythonCmd, sizeof(pythonCmd), "cd /d \"%s\" && python -m venv venv", projectPath);
-        runCommand(pythonCmd);
+        runCommandVerbose(pythonCmd, 1);
     }
-}
-
-
-
-void installFlaskVenv(const char *projectPath)
-{
-    char cmd[CMD_BUFFER_SIZE];
-    snprintf(cmd, sizeof(cmd), "cd /d \"%s\" && venv\\Scripts\\pip install flask", projectPath);
-    runCommand(cmd);
-    printf("Flask installed.\n");
+    ensureDependenciesMatch(projectPath);
 }
 
 
 
 void runFlaskApp(const char *projectPath)
 {
+    printf("Checking dependencies before running...\n");
+    ensureDependenciesMatch(projectPath);
+    printf("Starting Flask application...\n");
     char cmd[CMD_BUFFER_SIZE];
     snprintf(cmd, sizeof(cmd), "start cmd.exe /k \"cd /d \"%s\" && venv\\Scripts\\python app.py\"", projectPath);
-    runCommand(cmd);
+    runCommandVerbose(cmd, 1);
 }
 
 
@@ -362,7 +513,7 @@ void addAsset(const char *projectPath)
             snprintf(fullPath, sizeof(fullPath), "%s\\%s", projectPath, fileName);
         char cmd[CMD_BUFFER_SIZE];
         snprintf(cmd, sizeof(cmd), "echo. > \"%s\"", fullPath);
-        runCommand(cmd);
+        runCommandVerbose(cmd, 0);
         printf("Blank file created.\n");
     }
     else
@@ -380,8 +531,8 @@ void workspaceMenu(const char *projectPath)
     {
         printf("\n--- Workspace Control ---\n");
         printf("Current project: %s\n", projectPath);
-        printf("a) Install dependencies (flask)\n");
-        printf("b) Run application (python app.py)\n");
+        printf("a) Install / Update dependencies (sync with requirements.txt)\n");
+        printf("b) Run application (auto-syncs dependencies first)\n");
         printf("c) Delete project entirely\n");
         printf("d) Add a new workspace asset (file/directory)\n");
         printf("e) Exit to main menu\n");
@@ -394,7 +545,7 @@ void workspaceMenu(const char *projectPath)
         {
             case 'a':
             case 'A':
-                installFlaskVenv(projectPath);
+                installRequirements(projectPath);
                 break;
             case 'b':
             case 'B':
@@ -424,7 +575,8 @@ int main(void)
     char scopeChoice[10];
     int globalScope = 0;
     char *basePath = NULL;
-    printf("Welcome to flaskmanager V1.0 by Tole CaxtoneKirigha! Feel free to contribute to this project at: https://github.com/ToleInventor/flaskmanager\n");
+
+    printf("=== Flask Project Manager (with .flaskman tracking) ===\n");
     printf("Manage projects for:\n");
     printf("1) Current user (%%USERPROFILE%%\\flask_manager)\n");
     printf("2) Global all users (%%SystemDrive%%\\Users\\flask_manager)\n");
@@ -455,10 +607,18 @@ int main(void)
     {
         installPythonChoice();
     }
+    else
+    {
+        printf("Python is available.\n");
+    }
 
     if (!checkVSCode())
     {
         installVSCode();
+    }
+    else
+    {
+        printf("Visual Studio Code is available.\n");
     }
 
     int mainChoice;
@@ -492,12 +652,18 @@ int main(void)
                 }
                 else
                 {
-                    createFlaskProject(projectPath, projName);
-                    ensureVenv(projectPath);
-                    currentProject = _strdup(projectPath);
-                    workspaceMenu(currentProject);
-                    free(currentProject);
-                    currentProject = NULL;
+                    if (createFlaskProject(projectPath) == 0)
+                    {
+                        ensureVenv(projectPath);
+                        currentProject = _strdup(projectPath);
+                        workspaceMenu(currentProject);
+                        free(currentProject);
+                        currentProject = NULL;
+                    }
+                    else
+                    {
+                        printf("Failed to create project.\n");
+                    }
                 }
                 break;
             }
@@ -530,7 +696,8 @@ int main(void)
                 snprintf(fullPath, sizeof(fullPath), "%s\\%s", basePath, targetFolder);
                 char cmd[CMD_BUFFER_SIZE];
                 snprintf(cmd, sizeof(cmd), "git clone \"%s\" \"%s\"", repoUrl, fullPath);
-                runCommand(cmd);
+                printf("Cloning repository...\n");
+                runCommandVerbose(cmd, 1);
                 printf("Clone completed.\n");
                 break;
             }
